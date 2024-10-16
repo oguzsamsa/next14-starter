@@ -1,32 +1,39 @@
-import React from 'react'
+'use client'
+
+import React, { useState } from 'react'
 import styles from  './links.module.css'
 import NavLink from './navLink/navLink'
 
+const links = [
+  {
+      title: "Homepage",
+      path: "/"
+  },
+  {
+      title: "About",
+      path: "/about"
+  },
+  {
+      title: "Contact",
+      path: "/contact"
+  },
+  {
+      title: "Blog",
+      path: "/blog"
+  }
+]
+
 const Links = () => {
 
-    const links = [
-        {
-            title: "Homepage",
-            path: "/"
-        },
-        {
-            title: "About",
-            path: "/about"
-        },
-        {
-            title: "Contact",
-            path: "/contact"
-        },
-        {
-            title: "Blog",
-            path: "/blog"
-        }
-      ]
+    const [open, setOpen] = useState(false);
+
+    
       
     // temporary
-       const session = true
-       const admin = true
+       const session = false
+       const admin = false
   return (
+    <div className={styles.container}>
     <div className={styles.links}>
         {links.map((link) => (
             <NavLink key={link.title} item={link} />
@@ -42,6 +49,15 @@ const Links = () => {
             <NavLink item={{title: "Login", path: "/login"}} />
           )
         }
+    </div>
+    <button className={styles.menuButton} onClick={() => setOpen((prev) => !prev)}>Menu</button>
+    {
+      open && <div className={styles.mobileLinks}>
+        {links.map((link) => (
+          <NavLink key={link.title} item={link} />
+        ))}
+      </div>
+    }
     </div>
   )
 }
