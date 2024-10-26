@@ -1,9 +1,8 @@
 import styles from "./navbar.module.css";
-import React from "react";
 import Links from "./links/Links";
 import Link from "next/link";
 
-const Navbar = () => {
+const Navbar = async () => {
   return (
     <div className={styles.container}>
       <Link href="/">
