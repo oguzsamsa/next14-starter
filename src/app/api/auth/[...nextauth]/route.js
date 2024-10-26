@@ -8,21 +8,18 @@ import CredentialsProvider from "next-auth/providers/credentials";
 const login = async (credentials) => {
   try {
     await connectToDb();
-    console.log("Gelen credentials:", credentials);
+    
     
     const user = await User.findOne({username: credentials.username});
-    console.log("Bulunan kullanıcı:", user);
+    
     
     if(!user){
       throw new Error("Wrong credentials");
     }
 
-    console.log("Karşılaştırılacak şifreler:");
-    console.log("Gelen şifre:", credentials.password);
-    console.log("DB'deki hash:", user.password);
     
     const isPasswordCorrect = await bcrypt.compare(credentials.password, user.password);
-    console.log("Şifre karşılaştırma sonucu:", isPasswordCorrect);
+    
     
     if(!isPasswordCorrect){
       throw new Error("Wrong credentials");
@@ -35,7 +32,6 @@ const login = async (credentials) => {
       img: user.img,
       isAdmin: user.isAdmin
     };
-    console.log("Döndürülen user objesi:", returnUser);
 
     return returnUser;
   } catch (error) {
@@ -59,15 +55,8 @@ export const authOptions = {
       },
       async authorize(credentials) {
         try {
-          console.log("Authorize başlangıç:", credentials);
           const user = await login(credentials);
-          console.log("Login sonrası user:", user);
-          
-          if (user) {
-            return user;
-          }
-          
-          return null;
+          return user;
         } catch (error) {
           console.log("Authorize hata:", error);
           return null;
@@ -79,10 +68,14 @@ export const authOptions = {
     signIn: '/login',
     error: '/login',
   },
-  debug: true,
   callbacks: {
-    async jwt({ token, user, account }) {
+    async jwt({ token, user, account, profile }) {
       if (user) {
+        // GitHub login için admin kontrolü
+        if (account?.provider === "github") {
+          const dbUser = await User.findOne({ email: profile.email });
+          user.isAdmin = dbUser?.isAdmin || false;
+        }
         token.user = user;
       }
       return token;
@@ -98,30 +91,24 @@ export const authOptions = {
     },
     async signIn({ user, account, profile }) {
       if (account?.provider === "github") {
-        console.log("Github signin profile:", profile);
         await connectToDb();
-        console.log("DB connection established");
         
         try {
           const existingUser = await User.findOne({ email: profile.email });
-          console.log("Existing user check:", existingUser);
           
           if (!existingUser) {
-            console.log("Creating new user for Github login");
             const newUser = new User({
               email: profile.email,
               username: profile.login,
               img: profile.avatar_url,
+              isAdmin: false // Yeni GitHub kullanıcıları varsayılan olarak admin değil
             });
-            console.log("New user model created");
             await newUser.save();
-            console.log("User successfully saved");
           }
         } catch (error) {
           console.error("Database save error:", error);
           return false;
         }
-        return true;
       }
       return true;
     }

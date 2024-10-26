@@ -49,7 +49,10 @@ const Links = () => {
             </form>
           </>
         ) : (
-          <NavLink item={{ title: "Login", path: "/login" }} />
+          <div className={styles.auth}>
+            <NavLink item={{ title: "Login", path: "/login" }} />
+            <NavLink item={{ title: "Register", path: "/register" }} />
+          </div>
         )}
       </div>
       <Image
